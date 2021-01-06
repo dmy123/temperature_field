@@ -1,5 +1,6 @@
 import math
 
+#计算下一时刻温度场
 def two_densonal_diff(h, var_deltTime, middle_temp, var_XNumber, var_YNumber, var_X, var_Y, var_temperatureWater,
                       var_rouS, var_rouL, var_specificHeatS, var_specificHeatL, var_TconductivityS, var_TconductivityL,
                       var_liqTemp, var_SodTemp, var_m, var_latentHeatofSolidification):

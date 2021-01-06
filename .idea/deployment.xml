@@ -6,6 +6,15 @@
         <serverdata>
           <mappings>
             <mapping deploy="/tmp/pycharm_project_128" local="$PROJECT_DIR$" />
+            <mapping deploy="/tmp/pycharm_project_72" local="$PROJECT_DIR$/../dmy_reprsitory" />
+          </mappings>
+        </serverdata>
+      </paths>
+      <paths name="919600287@qq.com@192.168.2.52:22 (1)">
+        <serverdata>
+          <mappings>
+            <mapping deploy="/tmp/pycharm_project_128" local="$PROJECT_DIR$" />
+            <mapping deploy="/tmp/pycharm_project_72" local="$PROJECT_DIR$/../dmy_reprsitory" />
           </mappings>
         </serverdata>
       </paths>
