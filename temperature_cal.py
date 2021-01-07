@@ -90,20 +90,14 @@ def two_densonal_diff(h, var_deltTime, middle_temp, var_XNumber, var_YNumber, va
                             middle_temp[i + 1][j] - 2 * middle_temp[i][j] + middle_temp[i - 1][j]) + b * (
                                               middle_temp[i][j + 1] - 2 * middle_temp[i][j] + middle_temp[i][j - 1])
             ##### 内部温度 end ####
-    #### equation end #####
-    #    print("一次开始")
-    #    print( next_temp)
-    #    print("一次结束")
     return next_temp
 
-
+#计算整个温度场
 def steady_temp_cal(var_dis, var_VcastOriginal, var_deltTime, MiddleTemp, var_XNumber, var_YNumber, var_X, var_Y,
                     var_temperatureWater, var_rouS, var_rouL, var_specificHeatS, var_specificHeatL, var_TconductivityS,
                     var_TconductivityL, var_liqTemp, var_SodTemp, var_m, var_latentHeatofSolidification, Time_all,
                     time_Mold, var_h_initial, var_sliceNumber, var_castingTemp):
     NextTemp = [([0] * var_YNumber) for i in range(var_XNumber)]
-    # MiddleTemp_all =[([([var_castingTemp]*Time_all)]*var_YNumber) for i in range(var_XNumber)]
-
     MiddleTemp_all = [0] * var_XNumber
     for i in range(var_XNumber):
         MiddleTemp_all[i] = [0] * var_YNumber
@@ -118,20 +112,16 @@ def steady_temp_cal(var_dis, var_VcastOriginal, var_deltTime, MiddleTemp, var_XN
         if stepTime <= time_Mold:
             tTime = var_deltTime * (stepTime + 1);
             h = 1000 * (0.07128 * math.exp(-tTime) + 2.328 * math.exp(-tTime / 9.5) + 0.698)
-            # print("h",h)
             NextTemp = two_densonal_diff(h, var_deltTime, MiddleTemp, var_XNumber, var_YNumber, var_X, var_Y,
                                          var_temperatureWater, var_rouS, var_rouL, var_specificHeatS, var_specificHeatL,
                                          var_TconductivityS, var_TconductivityL, var_liqTemp, var_SodTemp, var_m,
                                          var_latentHeatofSolidification)
         else:
             disNow = var_dis[0] + stepTime * var_VcastOriginal * var_deltTime
-            # print("disNow",disNow)
             if var_dis[1] <= disNow <= var_dis[2]:
                 h = var_h_initial[0]
-                # print("23123",h)
             if var_dis[2] < disNow <= var_dis[3]:
                 h = var_h_initial[1]
-                # print("21111123",h)
             if var_dis[3] < disNow <= var_dis[4]:
                 h = var_h_initial[2]
             if var_dis[4] < disNow <= var_dis[5]:

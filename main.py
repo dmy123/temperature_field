@@ -1,7 +1,3 @@
-# This is a sample Python script.
-
-# Press Shift+F10 to execute it or replace it with your code.
-# Press Double Shift to search everywhere for classes, files, tool windows, actions, and settings.
 import temperature_cal
 import numpy as np
 import matplotlib.pyplot as plt
@@ -49,15 +45,10 @@ def one_example_temp_cal(t_cast,v_cast, var_h_initial):
         tl[i] = var_dis[i] / (v_cast / 60)  # var_VcastOriginal=0.6/60
 
         t_l[i] = int(tl[i] / var_deltTime) - 2
-    #    print("t_l",t_l)
-    #    print("tl",tl)
-    #    print("t_l",tl)
     time_Mold = int((tl[1] - tl[0]) / var_deltTime)
-    # print("11",time_Mold)
     time_SCZ = int((tl[len(var_dis) - 1] - tl[1]) / var_deltTime)  # var_deltTime=0.4 # 差分计算时间间隔
     #Time_all = time_Mold + time_SCZ
     Time_all=1920
-    print('Time_all',Time_all)
     start_time = time.time()
     MiddleTemp_all, t = temperature_cal.steady_temp_cal(var_dis, var_VcastOriginal, var_deltTime, MiddleTemp, var_XNumber, var_YNumber, var_X, var_Y,
                     var_temperatureWater, var_rouS, var_rouL, var_specificHeatS, var_specificHeatL, var_TconductivityS,
@@ -85,29 +76,25 @@ if __name__ == '__main__':
     data = xlrd.open_workbook('h_v_t.xlsx')
     sheet = data.sheet_by_name('Sheet1')
     all_rows = sheet.get_rows()
-    #temperature_field_data = np.empty((240,32,32,1920))
     temperature_field_data = torch.empty((240,32,32,1920))
     count = 0
     for row in all_rows:
-        var_h_initial = [row[0].value,row[1].value,row[2].value,row[4].value]
+        var_h_initial = [row[0].value,row[1].value,row[2].value,row[3].value]
         v_cast = row[4].value
         t_cast = row[5].value
         print("第",count,"次运行，参数：",var_h_initial,v_cast,t_cast)
         MiddleTemp_all, t = one_example_temp_cal(t_cast,v_cast, var_h_initial)
-        #temperature_field_data[count] = MiddleTemp_all
         temperature_field_data[count] = torch.Tensor(MiddleTemp_all)
-        print(temperature_field_data[count])
+        # print(temperature_field_data[count])
         count  = count + 1
+    #     if count > 3:
+    #         break
     # print(temperature_field_data.shape)
-    # for i in range(2):
+    # for i in range(4):
     #     for time in range(0,1920,500):
     #         print(temperature_field_data[i,:, :, time])
     #         plt.matshow(temperature_field_data[i,:, :, time])
     #         plt.show()
-    # v_cast = 0.53
-    # t_cast = 1530
-    # var_h_initial = [58.1, 143, 93.44, 81.285]  # 待定参数的初值# 待定参数的初值
-    # MiddleTemp_all, t = one_example_temp_cal(t_cast,v_cast, var_h_initial)
     print(temperature_field_data.shape)
     scipy.io.savemat('data/temperature_data.mat', mdict={'temperature_field_data':temperature_field_data.cpu().numpy()})
-# See PyCharm help at https://www.jetbrains.com/help/pycharm/
+
