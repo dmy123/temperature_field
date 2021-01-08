@@ -130,7 +130,6 @@ class Net2d(nn.Module):
 
     def forward(self, x):
         x = self.conv1(x)
-        #print("-->{}".format(x.size()))
         return x
 
 
@@ -144,19 +143,12 @@ class Net2d(nn.Module):
 ################################################################
 # configs
 ################################################################
-
-#TRAIN_PATH = 'data/ns_data_V10000_N1200_T20.mat'
-#TEST_PATH = 'data/ns_data_V10000_N1200_T20.mat'
-
 TRAIN_PATH = '/tmp/pycharm_project_128/data/temperature_data.mat'
 TEST_PATH = '/tmp/pycharm_project_128/data/temperature_data.mat'
 
 #训练数据个数与测试数据个数
-# ntrain = 1000
-# ntest = 200
-
 ntrain = 160
-ntest = 80
+ntest = 40
 
 modes = 12
 width = 20
@@ -177,7 +169,7 @@ print(epochs, learning_rate, scheduler_step, scheduler_gamma)
 # path_train_err = 'results/'+path+'train.txt'
 # path_test_err = 'results/'+path+'test.txt'
 # path_image = 'image/'+path
-path = 'temperature_field_240_32_32_1920'+'_2021_1_6'
+path = 'temperature_field_240_32_32_1920'+'_2021_1_8'
 path_model = 'model/'+path
 
 
@@ -199,14 +191,7 @@ data = scio.loadmat(TRAIN_PATH)
 print(data.keys())
 print(type(data['temperature_field_data']))
 print(data['temperature_field_data'].shape)
-# print(data)
-# reader = MatReader(TRAIN_PATH)
-# train_a = reader.read_field('temperature_field_data')[:ntrain,::sub,::sub,T_start:T_in:10]
-# train_u = reader.read_field('temperature_field_data')[:ntrain,::sub,::sub,T_in:T+T_in:10]
-#
-# reader = MatReader(TEST_PATH)
-# test_a = reader.read_field('temperature_field_data')[-ntest:,::sub,::sub,T_start:T_in:10]
-# test_u = reader.read_field('temperature_field_data')[-ntest:,::sub,::sub,T_in:T+T_in:10]
+
 reader = MatReader(TRAIN_PATH)
 train_a = reader.read_field('temperature_field_data')[:ntrain,::sub,::sub,T_start:T_in*20:20]
 train_u = reader.read_field('temperature_field_data')[:ntrain,::sub,::sub,T_in*20:(T+T_in)*20:20]
@@ -262,6 +247,10 @@ myloss = LpLoss(size_average=False)
 gridx = gridx.to(device)
 gridy = gridy.to(device)
 gridt = gridt.to(device)
+
+train_relative_error = np.empty((epochs))
+test_relative_error = np.empty((epochs))
+
 for ep in range(epochs):
     model.train()
     t1 = default_timer()
@@ -322,7 +311,22 @@ for ep in range(epochs):
 
     t2 = default_timer()
     scheduler.step()
+    train_relative_error[ep] = train_l2_step/ntrain/(T/step)
+    test_relative_error[ep] = test_l2_step/ntest/(T/step)
     print(ep, t2-t1, train_l2_step/ntrain/(T/step), train_l2_full/ntrain, test_l2_step/ntest/(T/step), test_l2_full/ntest)
+x_axis = np.arange(epochs)
+plt.axes(yscale = "log")
+plt.plot(x_axis,train_relative_error)
+plt.xlabel('Epochs')
+plt.ylabel('Relative error')
+plt.savefig('picture/train_relative_error.jpg')
+plt.show()
+plt.axes(yscale = "log")
+plt.plot(x_axis,test_relative_error)
+plt.xlabel('Epochs')
+plt.ylabel('Relative error')
+plt.savefig('picture/test_relative_error.jpg')
+plt.show()
 torch.save(model, path_model)
 
 

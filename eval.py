@@ -7,7 +7,7 @@ from utilities3 import *
 import operator
 from functools import reduce
 from functools import partial
-
+import time
 from timeit import default_timer
 import scipy.io
 
@@ -147,7 +147,7 @@ t1 = default_timer()
 TEST_PATH = '/tmp/pycharm_project_128/data/temperature_data.mat'
 
 
-ntest = 20
+ntest = 40
 
 # sub = 4
 sub = 1
@@ -161,8 +161,8 @@ indent = 3
 
 # load data
 reader = MatReader(TEST_PATH)
-test_a = reader.read_field('temperature_field_data')[::12,::sub,::sub, 0:T_in] #([0, T_in])
-test_u = reader.read_field('temperature_field_data')[::12,::sub,::sub, T_in:T_in + T] #([T_in, T_in + T])
+test_a = reader.read_field('temperature_field_data')[160:200:1,::sub,::sub, 0:T_in] #([0, T_in])
+test_u = reader.read_field('temperature_field_data')[160:200:1,::sub,::sub, T_in:T_in + T] #([T_in, T_in + T])
 
 print(test_a.shape, test_u.shape)
 
@@ -194,7 +194,7 @@ device = torch.device('cuda')
 # width = 20
 
 # load model
-model = torch.load('model/temperature_field_240_32_32_1920_2021_1_6')
+model = torch.load('model/temperature_field_240_32_32_1920_2021_1_7')
 # model = Net2d(modes, width).cuda()
 
 print(model.count_params())
@@ -204,18 +204,25 @@ test_loader = torch.utils.data.DataLoader(torch.utils.data.TensorDataset(test_a,
 myloss = LpLoss(size_average=False)
 pred = torch.zeros(test_u.shape)
 index = 0
+cost_time = 0
 with torch.no_grad():
     test_l2 = 0
     for x, y in test_loader:
         x, y = x.cuda(), y.cuda()
-
+        start_time = time.time()
         out = model(x)
         pred[index] = out
+        end_time = time.time()
+        cal_time = end_time - start_time
+        print("计算一次温度场时间：", cal_time)
+        cost_time = cost_time + cal_time
+
         loss = myloss(out.view(1, -1), y.view(1, -1)).item()
         test_l2 += loss
         print(index, loss)
         index = index + 1
 print(test_l2/ntest)
+print("温度场计算总时间：",cost_time,",单次温度场计算平均时间：",cost_time / ntest)
 
 path = 'temperature_field_eval'
 scipy.io.savemat('pred/'+path+'.mat', mdict={'pred': pred.cpu().numpy(), 'u': test_u.cpu().numpy()})

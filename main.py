@@ -49,14 +49,11 @@ def one_example_temp_cal(t_cast,v_cast, var_h_initial):
     time_SCZ = int((tl[len(var_dis) - 1] - tl[1]) / var_deltTime)  # var_deltTime=0.4 # 差分计算时间间隔
     #Time_all = time_Mold + time_SCZ
     Time_all=1920
-    start_time = time.time()
+
     MiddleTemp_all, t = temperature_cal.steady_temp_cal(var_dis, var_VcastOriginal, var_deltTime, MiddleTemp, var_XNumber, var_YNumber, var_X, var_Y,
                     var_temperatureWater, var_rouS, var_rouL, var_specificHeatS, var_specificHeatL, var_TconductivityS,
                     var_TconductivityL, var_liqTemp, var_SodTemp, var_m, var_latentHeatofSolidification, Time_all,
                     time_Mold, var_h_initial, var_ZNumber, var_castingTemp)
-    end_time = time.time()
-    cal_time = end_time - start_time
-    print("计算一次温度场时间：", cal_time)
     # print(np.array(MiddleTemp_all).shape)
     # for step in range(0, Time_all, 500):
     #     print(np.array(MiddleTemp_all)[:,:,step])
@@ -78,14 +75,19 @@ if __name__ == '__main__':
     all_rows = sheet.get_rows()
     temperature_field_data = torch.empty((240,32,32,1920))
     count = 0
+    cost_time = 0
     for row in all_rows:
         var_h_initial = [row[0].value,row[1].value,row[2].value,row[3].value]
         v_cast = row[4].value
         t_cast = row[5].value
         print("第",count,"次运行，参数：",var_h_initial,v_cast,t_cast)
+        start_time = time.time()
         MiddleTemp_all, t = one_example_temp_cal(t_cast,v_cast, var_h_initial)
+        end_time = time.time()
+        cal_time = end_time - start_time
+        print("计算一次温度场时间：", cal_time)
+        cost_time = cost_time+cal_time
         temperature_field_data[count] = torch.Tensor(MiddleTemp_all)
-        # print(temperature_field_data[count])
         count  = count + 1
     #     if count > 3:
     #         break
@@ -95,6 +97,7 @@ if __name__ == '__main__':
     #         print(temperature_field_data[i,:, :, time])
     #         plt.matshow(temperature_field_data[i,:, :, time])
     #         plt.show()
+    print("温度场计算总时间：",cost_time,",单次温度场计算平均时间：",cost_time / 240)
     print(temperature_field_data.shape)
     scipy.io.savemat('data/temperature_data.mat', mdict={'temperature_field_data':temperature_field_data.cpu().numpy()})
 
